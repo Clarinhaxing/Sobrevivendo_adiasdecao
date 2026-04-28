@@ -10,16 +10,20 @@ public class GameManager : MonoBehaviour
     public int meta = 10;
 
     [Header("Tempo")]
-    public float tempoMax = 60f;
-    private float tempoAtual;
+    public float tempo = 60f;
 
     [Header("UI")]
     public TextMeshProUGUI textoItens;
     public TextMeshProUGUI textoTempo;
+
     public GameObject painelVitoria;
     public GameObject painelDerrota;
 
-    private bool jogoAcabou = false;
+    [Header("Boss")]
+    public GameObject carrocinha;
+
+    public bool jogoAcabou = false;
+    private bool bossLiberado = false;
 
     void Awake()
     {
@@ -28,10 +32,9 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        tempoAtual = tempoMax;
-
         painelVitoria.SetActive(false);
         painelDerrota.SetActive(false);
+        carrocinha.SetActive(false);
 
         AtualizarUI();
     }
@@ -40,15 +43,18 @@ public class GameManager : MonoBehaviour
     {
         if (jogoAcabou) return;
 
-        tempoAtual -= Time.deltaTime;
-
-        if (tempoAtual <= 0)
+        if (!bossLiberado)
         {
-            tempoAtual = 0;
-            Derrota();
-        }
+            tempo -= Time.deltaTime;
 
-        AtualizarTempoUI();
+            if (tempo <= 0)
+            {
+                tempo = 0;
+                LiberarBoss();
+            }
+
+            textoTempo.text = "Tempo: " + Mathf.Ceil(tempo);
+        }
     }
 
     public void Coletar(int valor)
@@ -69,22 +75,25 @@ public class GameManager : MonoBehaviour
         textoItens.text = "Itens: " + itensColetados + "/" + meta;
     }
 
-    void AtualizarTempoUI()
+    void LiberarBoss()
     {
-        textoTempo.text = "Tempo: " + Mathf.Ceil(tempoAtual);
+        bossLiberado = true;
+        carrocinha.SetActive(true);
+
+        textoTempo.text = "FUJA!";
+    }
+
+    public void Derrota()
+    {
+        jogoAcabou = true;
+        painelDerrota.SetActive(true);
+        Time.timeScale = 0f;
     }
 
     void Vitoria()
     {
         jogoAcabou = true;
         painelVitoria.SetActive(true);
-        Time.timeScale = 0f;
-    }
-
-    void Derrota()
-    {
-        jogoAcabou = true;
-        painelDerrota.SetActive(true);
         Time.timeScale = 0f;
     }
 }

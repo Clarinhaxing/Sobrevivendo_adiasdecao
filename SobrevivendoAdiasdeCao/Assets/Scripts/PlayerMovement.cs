@@ -7,7 +7,10 @@ public class PlayerMovement : MonoBehaviour
 
     private Rigidbody2D rb;
     private float moveInput;
+
     private bool isGrounded;
+    private int jumpCount;
+    public int maxJumps = 2;
 
     void Start()
     {
@@ -19,10 +22,11 @@ public class PlayerMovement : MonoBehaviour
         // Movimento lateral
         moveInput = Input.GetAxis("Horizontal");
 
-        // Pulo
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        // Pulo normal + duplo pulo
+        if (Input.GetKeyDown(KeyCode.Space) && jumpCount < maxJumps)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            jumpCount++;
         }
 
         // Latido
@@ -42,12 +46,12 @@ public class PlayerMovement : MonoBehaviour
         Debug.Log("Latido!");
     }
 
-    // Detecta ch�o pela TAG
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
+            jumpCount = 0; // reseta pulos ao tocar chão
         }
     }
 
