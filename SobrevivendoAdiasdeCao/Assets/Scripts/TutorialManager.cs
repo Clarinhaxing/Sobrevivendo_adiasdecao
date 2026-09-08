@@ -1,87 +1,311 @@
 using UnityEngine;
+using TMPro;
+using System.Collections;
 
 public class TutorialManager : MonoBehaviour
 {
-    public enum Etapa
+    public static TutorialManager instance;
+
+    // =====================================================
+    // ETAPAS DO TUTORIAL
+    // =====================================================
+
+    public enum EtapaTutorial
     {
         Introducao,
         Corrida,
         Pulo,
         Latido,
         Coleta,
-        Fuga,
-        Final
+        Finalizado
     }
 
-    public Etapa etapaAtual = Etapa.Introducao;
+    [Header("Estado")]
+    public EtapaTutorial etapaAtual = EtapaTutorial.Introducao;
 
-    private void Start()
+    // =====================================================
+    // UI
+    // =====================================================
+
+    [Header("UI do Tutorial")]
+    public GameObject painelDialogo;
+    public TextMeshProUGUI textoDuke;
+
+    public GameObject tituloFase;
+    public TextMeshProUGUI textoTitulo;
+
+    public GameObject objetivo;
+    public TextMeshProUGUI textoObjetivo;
+
+    // =====================================================
+    // TIMER
+    // =====================================================
+
+    [Header("Timer")]
+    public TutorialTimer tutorialTimer;
+
+    [Header("Chefe")]
+    public ChefeCarrocinhaTutorial chefe;
+
+    // =====================================================
+    // CONFIGURAÇÃO
+    // =====================================================
+
+    [Header("Configuração")]
+    public float tempoEntreFalase = 2f;
+
+    private bool tutorialIniciado = false;
+
+    // =====================================================
+    // DIALOGOS DE DUKE
+    // =====================================================
+
+    [Header("Falas de Duke")]
+
+    [TextArea(2, 5)]
+    public string[] falasDuke =
     {
-        IniciarTutorial();
+        "As coisas não estão boas para nós...",
+
+        "Precisamos fugir deste lugar!",
+
+        "Sandy, você conseguiu sair da sua gaiola, ajude os outros a saírem também!",
+
+        "O chefe da carrocinha está no horário de intervalo agora, é a nossa chance!",
+
+        "Mas o intervalo não vai durar para sempre. Quando ele voltar, vai começar a ronda pelas gaiolas.",
+
+        "Precisamos libertar todos antes que ele termine a ronda!",
+
+        "Você precisa coletar as 9 chaves das gaiolas que estão com ele! Rápido, estamos quase sem tempo!"
+    };
+
+    // =====================================================
+    // AWAKE
+    // =====================================================
+
+    void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
     }
 
-    void IniciarTutorial()
-    {
-        etapaAtual = Etapa.Corrida;
+    // =====================================================
+    // START
+    // =====================================================
 
-        Debug.Log("Tutorial iniciado!");
-        Debug.Log("Etapa: CORRIDA");
+    void Start()
+    {
+        etapaAtual = EtapaTutorial.Introducao;
+
+        if (objetivo != null)
+            objetivo.SetActive(false);
+
+        if (painelDialogo != null)
+            painelDialogo.SetActive(false);
+
+        if (tituloFase != null)
+            tituloFase.SetActive(true);
+
+        if (textoTitulo != null)
+            textoTitulo.text = "A FUGA";
+
+        StartCoroutine(IniciarTutorial());
     }
 
-    public void CompletarCorrida()
+    // =====================================================
+    // INÍCIO
+    // =====================================================
+
+    IEnumerator IniciarTutorial()
     {
-        if (etapaAtual != Etapa.Corrida)
+        yield return new WaitForSeconds(1f);
+
+        if (tituloFase != null)
+            tituloFase.SetActive(false);
+
+        yield return new WaitForSeconds(0.5f);
+
+        yield return StartCoroutine(MostrarDialogos());
+
+        ComecarCorrida();
+    }
+
+    // =====================================================
+    // FALAS DE DUKE
+    // =====================================================
+
+    IEnumerator MostrarDialogos()
+    {
+        if (painelDialogo != null)
+            painelDialogo.SetActive(true);
+
+        for (int i = 0; i < falasDuke.Length; i++)
+        {
+            if (textoDuke != null)
+                textoDuke.text = falasDuke[i];
+
+            yield return new WaitForSeconds(tempoEntreFalase);
+        }
+
+        if (painelDialogo != null)
+            painelDialogo.SetActive(false);
+    }
+
+    // =====================================================
+    // CORRIDA
+    // =====================================================
+
+    void ComecarCorrida()
+    {
+        etapaAtual = EtapaTutorial.Corrida;
+
+        MostrarObjetivo("Use as setas direcionais para andar!");
+    }
+
+    public void RegistrarCorrida()
+    {
+        if (etapaAtual != EtapaTutorial.Corrida)
             return;
 
-        etapaAtual = Etapa.Pulo;
+        Debug.Log("Corrida concluída!");
 
-        Debug.Log("Etapa: PULO");
+        ComecarPulo();
     }
 
-    public void CompletarPulo()
+    // =====================================================
+    // PULO
+    // =====================================================
+
+    void ComecarPulo()
     {
-        if (etapaAtual != Etapa.Pulo)
+        etapaAtual = EtapaTutorial.Pulo;
+
+        MostrarObjetivo("Use ESPAÇO para pular e fugir dos golpes!");
+    }
+
+    public void RegistrarPulo()
+    {
+        if (etapaAtual != EtapaTutorial.Pulo)
             return;
 
-        etapaAtual = Etapa.Latido;
+        Debug.Log("Pulo concluído!");
 
-        Debug.Log("Etapa: LATIDO");
+        ComecarLatido();
     }
 
-    public void CompletarLatido()
+    // =====================================================
+    // LATIDO
+    // =====================================================
+
+    void ComecarLatido()
     {
-        if (etapaAtual != Etapa.Latido)
+        etapaAtual = EtapaTutorial.Latido;
+
+        MostrarObjetivo("Use Z para latir e assustar o chefe!");
+    }
+
+    public void RegistrarLatido()
+    {
+        if (etapaAtual != EtapaTutorial.Latido)
             return;
 
-        etapaAtual = Etapa.Coleta;
+        Debug.Log("Latido concluído!");
 
-        Debug.Log("Etapa: COLETA");
+        ComecarColeta();
     }
 
-    public void CompletarColeta()
+    // =====================================================
+    // COLETA / INÍCIO DO INTERVALO
+    // =====================================================
+
+    void ComecarColeta()
     {
-        if (etapaAtual != Etapa.Coleta)
-            return;
+        etapaAtual = EtapaTutorial.Coleta;
 
-        etapaAtual = Etapa.Fuga;
+        MostrarObjetivo("Colete as chaves e nos liberte daqui!");
 
-        Debug.Log("Etapa: FUGA");
+        Debug.Log("Tutorial das mecânicas concluído!");
 
-        IniciarFuga();
+        // Inicia o timer do intervalo
+        if (tutorialTimer != null)
+        {
+            tutorialTimer.IniciarTimer();
+        }
+        else
+        {
+            Debug.LogWarning("TutorialTimer1 não foi configurado no Inspector!");
+        }
     }
 
-    void IniciarFuga()
+    // =====================================================
+    // INTERVALO TERMINOU
+    // =====================================================
+
+    public void IntervaloTerminou()
     {
-        Debug.Log("A CARROCINHA APARECEU!");
+        Debug.Log("O CHEFE VOLTOU!");
+
+        MostrarObjetivo("O chefe voltou!");
+
+        if (chefe != null)
+        {
+            chefe.LiberarChefe();
+        }
+        else
+        {
+            Debug.LogWarning(
+                "O Chefe Carrocinha não foi configurado no TutorialManager!"
+            );
+        }
+    }
+    // =====================================================
+    // FINAL
+    // =====================================================
+
+    public void FinalizarTutorial()
+    {
+        etapaAtual = EtapaTutorial.Finalizado;
+
+        if (objetivo != null)
+            objetivo.SetActive(false);
+
+        if (painelDialogo != null)
+            painelDialogo.SetActive(true);
+
+        if (textoDuke != null)
+        {
+            textoDuke.text =
+                "Conseguimos! Vamos libertar todos!";
+        }
+
+        Debug.Log("Tutorial concluído!");
     }
 
-    public void CompletarFuga()
+    // =====================================================
+    // MOSTRAR OBJETIVO
+    // =====================================================
+
+    void MostrarObjetivo(string mensagem)
     {
-        if (etapaAtual != Etapa.Fuga)
-            return;
+        if (objetivo != null)
+            objetivo.SetActive(true);
 
-        etapaAtual = Etapa.Final;
+        if (textoObjetivo != null)
+            textoObjetivo.text = mensagem;
+    }
 
-        Debug.Log("FUGA CONCLUÍDA!");
+    // =====================================================
+    // VERIFICAR ETAPA
+    // =====================================================
+
+    public bool EstaNaEtapa(EtapaTutorial etapa)
+    {
+        return etapaAtual == etapa;
     }
 }
